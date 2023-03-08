@@ -93,7 +93,6 @@ def get_forcing_dict(
 
 
 def main():
-
     folder_prefix = Path("data")
     list_of_files = [
         f"nwm.t12z.medium_range.forcing.f{_r:03}.conus.nc" for _r in range(1, 241)
@@ -121,6 +120,7 @@ def main():
 
     # This way is extremely slow for anything more than a
     # few files, so we comment it out of the test
+
     start_time = time.time()
     print(f"Working on the old (slow) way")
     fd1 = get_forcing_dict(
@@ -134,18 +134,21 @@ def main():
     start_time = time.time()
     print(f"Working on the new way")
     fd2 = get_forcing_dict_newway(
-        feature_list,
+        gpkg_subset,
         folder_prefix,
         file_list,
+        var_list,
     )
     print(time.time() - start_time)
 
     start_time = time.time()
+
     print(f"Working on the new way with threading parallel.")
     fd3 = get_forcing_dict_newway_parallel(
-        feature_list,
+        gpkg_subset,
         folder_prefix,
         file_list,
+        var_list,
         para="thread",
         para_n=16,
     )
@@ -154,44 +157,48 @@ def main():
     start_time = time.time()
     print(f"Working on the new way with process parallel.")
     fd3 = get_forcing_dict_newway_parallel(
-        feature_list,
+        gpkg_subset,
         folder_prefix,
         file_list,
+        var_list,
         para="process",
         para_n=16,
     )
     print(time.time() - start_time)
-
     start_time = time.time()
     print(f"Working on the new way with loops reversed.")
     fd4 = get_forcing_dict_newway_inverted(
-        feature_list,
+        gpkg_subset,
         folder_prefix,
         file_list,
+        var_list,
     )
     print(time.time() - start_time)
 
     start_time = time.time()
     print(f"Working on the new way with loops reversed with threading parallel.")
     fd4 = get_forcing_dict_newway_inverted_parallel(
-        feature_list,
+        gpkg_subset,
         folder_prefix,
         file_list,
+        var_list,
         para="thread",
         para_n=16,
     )
     print(time.time() - start_time)
-
     start_time = time.time()
     print(f"Working on the new way with loops reversed with process parallel.")
     fd4 = get_forcing_dict_newway_inverted_parallel(
-        feature_list,
+        gpkg_subset,
         folder_prefix,
         file_list,
+        var_list,
         para="process",
         para_n=16,
     )
     print(time.time() - start_time)
+
+    breakpoint()
 
 
 if __name__ == "__main__":
