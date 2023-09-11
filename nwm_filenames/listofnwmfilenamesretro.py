@@ -29,8 +29,8 @@ def generate_url(date, file_type, urlbase_prefix, retrospective_var_types=None):
         url = f"{urlbase_prefix}{file_type}{year_txt}/{date_txt}.LDASIN_DOMAIN1"
     elif "model_output" in file_type:
         url = [
-            f"{urlbase_prefix}{file_type}{year_txt}/{date_txt}00{type}"
-            for type in retrospective_var_types
+            f"{urlbase_prefix}{file_type}{year_txt}/{date_txt}00{var_type}"
+            for var_type in retrospective_var_types
         ]
 
     return url
@@ -46,7 +46,12 @@ def create_file_list_retro(
     urlbase_prefix = urlbasedict[urlbaseinput]
     objecttype = [objecttypes[i] for i in objecttype]
     retrospective_var_types_selected = [
-        retrospective_var_types[i] for i in selected_var_types
+        retrospective_var_types[i]
+        for i in set(selected_var_types).difference(set([4, 5]))
+    ]
+    retrospective_var_types_selected_3hour = [
+        retrospective_var_types[i]
+        for i in set(selected_var_types).intersection(set([4, 5]))
     ]
 
     start_dt = datetime.strptime(start_date, "%Y%m%d%H%M")
@@ -59,6 +64,7 @@ def create_file_list_retro(
     ]
 
     file_list = []
+
     for date in date_range:
         for obj_type in objecttype:
             file_names = generate_url(
@@ -70,15 +76,32 @@ def create_file_list_retro(
                 else:
                     file_list.append(file_names)
 
+    if retrospective_var_types_selected_3hour:
+        date_range_LDASout = [
+            start_dt + timedelta(hours=i)
+            for i in range(0, delta.days * 24 + delta.seconds // 3600 + 1, 3)
+        ]
+
+        for date in date_range_LDASout:
+            for obj_type in [objecttypes[2]]:
+                file_names = generate_url(
+                    date, obj_type, urlbase_prefix, retrospective_var_types_selected_3hour
+                )
+                if file_names is not None:
+                    if isinstance(file_names, list):
+                        file_list.extend(file_names)
+                    else:
+                        file_list.append(file_names)
+
     return file_list
 
 
 def main():
     start_date = "20070101"
-    end_date = "20070102"
+    end_date = "20070101"
     urlbaseinput = 6
-    selected_var_types = [1, 2]
-    selected_object_types = [1]  # To test both forcing and model_output
+    selected_var_types = [1, 2, 4]
+    selected_object_types = [1, 2]  # To test both forcing and model_output
     start_time = "0000"
     end_time = "0800"
 
